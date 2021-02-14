@@ -1,0 +1,238 @@
+<html>
+    <head>
+        <title>Game of Life</title>
+    </head>
+    <body>
+			<div id="gameoflife" style="width:100%;height:100%;"></div>  
+			<script>
+     	
+    		function GameOfLifeGetCellState(aGameState,nRow,nColumn)
+    		{
+      		if (aGameState[nRow] != undefined)
+      		{
+        		aRow = aGameState[nRow];
+        		if (aRow != undefined)
+        		{
+        			if (aRow[nColumn] != undefined)
+        			{
+        				bState = aRow[nColumn];
+        				if (bState == 1)
+        				{
+        					return true;	
+        				}	
+        			}
+        		}
+        	}
+        	return false;
+    		}
+
+
+				function GameOfLifeCountNeighbors(nHeight,nWidth,aGameState,nRow,nColumn)
+				{
+					function GetPos(nPos,nRange)
+					{
+						if (nPos == -1)
+						{
+							return nRange - 1;
+						}
+						return nPos % nRange;	
+					}
+					
+					var nNeighbors = 0;
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow-1,nHeight),GetPos(nColumn-1,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow-1,nHeight),GetPos(nColumn,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow-1,nHeight),GetPos(nColumn+1,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow,nHeight),GetPos(nColumn-1,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow,nHeight),GetPos(nColumn+1,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow+1,nHeight),GetPos(nColumn-1,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow+1,nHeight),GetPos(nColumn,nWidth)))
+					{
+						nNeighbors++;
+					}
+					if (GameOfLifeGetCellState(aGameState,GetPos(nRow+1,nHeight),GetPos(nColumn+1,nWidth)))
+					{
+						nNeighbors++;
+					}
+					return nNeighbors;
+				}
+				
+				function GameOfLifeGetNewState(bState,nNeighbors)
+				{
+     			var bNewState = false;
+    			if (bState == false)
+    			{
+    				if (nNeighbors == 3)
+    				{
+    					bNewState = true;
+    				}
+    			}
+    			if (bState == true)
+    			{
+    				bNewState = true;
+    				if (nNeighbors < 2)
+    				{
+    					bNewState = false;
+    				}
+    				else if (nNeighbors > 3)
+    				{
+    					bNewState = false;
+    				}
+    			}
+    			return bNewState;
+				}
+        
+        function GameOfLifePlay(nHeight,nWidth,aGameState)
+        {
+        	var aNewGameState = [];
+        	for (var nRow = 0; nRow < nHeight; nRow++)
+        	{
+        		aNewRow = [];
+        		for (var nColumn = 0; nColumn < nWidth; nColumn++)
+        		{
+        			nNeighbors = GameOfLifeCountNeighbors(nHeight,nWidth,aGameState,nRow,nColumn);
+        			var bState = GameOfLifeGetCellState(aGameState,nRow,nColumn);
+
+        			aNewRow.push(GameOfLifeGetNewState(bState,nNeighbors));
+        		}
+        		aNewGameState.push(aNewRow);
+        	}
+        	return aNewGameState;
+        }
+            
+        function GameOfLifeRender(strElementId, nHeight, nWidth, nCellSize, aGameState)
+        {
+        	var eGame = document.getElementById(strElementId);
+        	if (eGame == undefined)
+        	{
+        		return;
+        	}
+        	var strHtml = '';
+        	
+        	strHtml += '<svg width="'+(nWidth*nCellSize)+'" height="'+(nHeight*nCellSize)+'" style="display:block; margin:auto;">';
+        	
+        	var strColorGrid = 'darkgrey';
+        	
+        	
+        	var strColorLife = 'black';
+        	var strColorDead = 'white';
+
+        	for (var nRow = 0; nRow < nHeight; nRow++)
+        	{
+        		for (var nColumn = 0; nColumn < nWidth; nColumn++)
+        		{
+        			var bState = GameOfLifeGetCellState(aGameState,nRow,nColumn);
+
+        			var strColor = strColorDead;
+        			
+        			if (bState == true)
+        			{
+	        			strColor = strColorLife;
+        			}
+        			strHtml += '<rect x="'+nCellSize*nColumn+'" y="'+nCellSize*nRow+'" width="'+nCellSize+'" height="'+nCellSize+'" style="fill: '+strColor+';"></rect>';
+        		}	
+        	}
+
+					function RenderSvgLine(nX1,nY1,nX2,nY2,strColor)
+					{
+						return '<line x1="'+nX1+'" y1="'+nY1+'" x2="'+nX2+'" y2="'+nY2+'" stroke="'+strColor+'"/>';
+					}
+
+       		strHtml += RenderSvgLine(0,0,(nWidth*nCellSize)-1,0,strColorGrid);
+					for (nRow = 0; nRow < nHeight; nRow++)
+					{
+        		strHtml += RenderSvgLine(0,((nRow+1)*nCellSize)-1,(nWidth*nCellSize)-1,((nRow+1)*nCellSize)-1,strColorGrid);
+        	}
+
+       		strHtml += RenderSvgLine(0,0,0,(nHeight*nCellSize)-1,strColorGrid);
+					for (nColumn = 0; nColumn < nWidth; nColumn++)
+					{
+        		strHtml += RenderSvgLine(((nColumn+1)*nCellSize)-1,0,((nColumn+1)*nCellSize)-1,(nHeight*nCellSize)-1,strColorGrid);
+        	}
+
+        	
+        	strHtml += '</svg>';
+        	
+        	eGame.innerHTML = strHtml;
+        	
+        	
+        } 
+
+  			
+  			function GameOfLife(strElementId)
+  			{
+	     		var nGameWidth = 60; 
+	     		var nGameHeight = 30;
+	     		var nCellSize = 30; 
+	     		var nSpeed = 80;
+	
+  				
+  				
+	     		var aGameState = [];
+				
+					aGameState.push([0,0,1,0,0,0,0]);     		
+	     		aGameState.push([0,0,0,1,0,0,0]);
+	     		aGameState.push([0,1,1,1,0,0,0]);
+	     		aGameState.push([0,0,0,0,0,0,0]);
+	     		aGameState.push([0,0,0,0,0,0,0]);
+	     		aGameState.push([0,0,0,0,0,0,0]);     
+	     		aGameState.push([0,0,0,0,0,0,0]);    
+	
+	/*
+	
+	     		aGameState.push([]);    
+	     		aGameState.push([]);    
+	     		aGameState.push([]);    
+	
+	     		aGameState.push([0,0,0,0,0,0,0,0]);     		
+	     		aGameState.push([0,0,0,0,0,0,0,0]);
+	     		aGameState.push([0,0,0,0,0,1,0,0]);
+	     		aGameState.push([0,0,0,0,0,1,0,0]);
+	     		aGameState.push([0,0,0,0,0,1,0,0]);
+	     		aGameState.push([0,0,0,0,0,1,0,0]);     
+	     		aGameState.push([0,0,0,0,0,1,0,0]);     
+	*/
+	    		
+	     		
+
+	     		var nGeneration = 0;	
+
+	  			function GameOfLifeTimerNextStep()
+	  			{
+	  				GameOfLifeRender('gameoflife',nGameHeight,nGameWidth,nCellSize,aGameState);
+	        	aGameState = GameOfLifePlay(nGameHeight,nGameWidth,aGameState);
+	        	nGeneration++;
+		        setTimeout(GameOfLifeTimerNextStep,nSpeed);
+	  			}
+	  			
+	  			GameOfLifeTimerNextStep();
+  				
+  			}  
+  			
+  			
+  			GameOfLife('gameoflife');
+         
+         
+     </script>  
+        
+    </body>
+    
+    
+</html>
