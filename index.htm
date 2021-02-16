@@ -216,7 +216,7 @@
 
 	  			function GameOfLifeTimerNextStep()
 	  			{
-	  				GameOfLifeRender('gameoflife',nGameHeight,nGameWidth,nCellSize,aGameState);
+	  				GameOfLifeRender(strElementId,nGameHeight,nGameWidth,nCellSize,aGameState);
 	        	aGameState = GameOfLifePlay(nGameHeight,nGameWidth,aGameState);
 	        	nGeneration++;
 		        setTimeout(GameOfLifeTimerNextStep,nSpeed);
